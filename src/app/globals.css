@@ -1,0 +1,478 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-quicksand), 'Quicksand', sans-serif;
+  --font-serif: var(--font-playfair), 'Playfair Display', serif;
+  --font-mono: ui-monospace, monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ===== JUNIOR THEME (8-12) - Bright Pink & Playful ===== */
+.theme-junior {
+  --radius: 1.5rem;
+  --background: #FFF5F8;
+  --foreground: #5D3F5D;
+  --card: #FFFFFF;
+  --card-foreground: #5D3F5D;
+  --popover: #FFFFFF;
+  --popover-foreground: #5D3F5D;
+  --primary: #FF69B4;
+  --primary-foreground: #FFFFFF;
+  --secondary: #FFF0F5;
+  --secondary-foreground: #FF69B4;
+  --muted: #FFE4EC;
+  --muted-foreground: #9B7A8A;
+  --accent: #FFB6C1;
+  --accent-foreground: #5D3F5D;
+  --destructive: #FF6B8A;
+  --border: #FFD6E0;
+  --input: #FFE8EE;
+  --ring: #FF69B4;
+}
+
+/* ===== TEEN THEME (13-17) - Purple & Aesthetic ===== */
+.theme-teen {
+  --radius: 1.25rem;
+  --background: #F8F5FF;
+  --foreground: #4A3F5C;
+  --card: #FFFFFF;
+  --card-foreground: #4A3F5C;
+  --popover: #FFFFFF;
+  --popover-foreground: #4A3F5C;
+  --primary: #9B59B6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F3E5F5;
+  --secondary-foreground: #9B59B6;
+  --muted: #E8D5F0;
+  --muted-foreground: #7A6A8A;
+  --accent: #CE93D8;
+  --accent-foreground: #4A3F5C;
+  --destructive: #E91E63;
+  --border: #E1BEE7;
+  --input: #F3E5F5;
+  --ring: #9B59B6;
+}
+
+/* ===== YOUNG ADULT THEME (18-25) - Rose Gold & Elegant ===== */
+.theme-young-adult {
+  --radius: 1rem;
+  --background: #FDF8F6;
+  --foreground: #5C4A4A;
+  --card: #FFFFFF;
+  --card-foreground: #5C4A4A;
+  --popover: #FFFFFF;
+  --popover-foreground: #5C4A4A;
+  --primary: #D4A5A5;
+  --primary-foreground: #FFFFFF;
+  --secondary: #FAE8E4;
+  --secondary-foreground: #D4A5A5;
+  --muted: #F0E0DC;
+  --muted-foreground: #8A7A7A;
+  --accent: #E8C4C4;
+  --accent-foreground: #5C4A4A;
+  --destructive: #C97B7B;
+  --border: #E8D4D0;
+  --input: #FAE8E4;
+  --ring: #D4A5A5;
+}
+
+/* ===== PLUS THEME (25-35) - Sage Green & Mature ===== */
+.theme-plus {
+  --radius: 0.875rem;
+  --background: #F5F7F4;
+  --foreground: #3D4A3D;
+  --card: #FFFFFF;
+  --card-foreground: #3D4A3D;
+  --popover: #FFFFFF;
+  --popover-foreground: #3D4A3D;
+  --primary: #7D9A78;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E8EDE6;
+  --secondary-foreground: #7D9A78;
+  --muted: #DDE5DA;
+  --muted-foreground: #6A7A6A;
+  --accent: #A8C4A0;
+  --accent-foreground: #3D4A3D;
+  --destructive: #C97878;
+  --border: #C8D4C5;
+  --input: #E8EDE6;
+  --ring: #7D9A78;
+}
+
+/* Base styles */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-quicksand), 'Quicksand', sans-serif;
+    letter-spacing: 0.01em;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-playfair), 'Playfair Display', serif;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+  opacity: 0.7;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(3deg); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.3); }
+}
+
+@keyframes bounce-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--ring); opacity: 0.4; }
+  50% { box-shadow: 0 0 0 15px var(--ring); opacity: 0; }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 2.5s ease-in-out infinite;
+}
+
+.animate-bounce-soft {
+  animation: bounce-soft 2s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* ===== JUNIOR SPECIFIC STYLES ===== */
+.theme-junior .kawaii-gradient {
+  background: linear-gradient(145deg, #FFF0F5 0%, #FFE4EC 30%, #FFF5F8 60%, #FFE8F0 100%);
+}
+
+.theme-junior .kawaii-gradient-soft {
+  background: linear-gradient(145deg, #FFFAFB 0%, #FFF5F8 30%, #FFF0F5 60%, #FFEDF2 100%);
+}
+
+.theme-junior .kawaii-card {
+  background: linear-gradient(145deg, #FFFFFF 0%, #FFF8FA 100%);
+  border-radius: 28px;
+  border: 2px solid rgba(255, 182, 193, 0.5);
+  box-shadow: 0 8px 32px rgba(255, 105, 180, 0.15);
+}
+
+.theme-junior .kawaii-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 16px 48px rgba(255, 105, 180, 0.25);
+}
+
+.theme-junior .kawaii-button {
+  background: linear-gradient(135deg, #FF69B4 0%, #FF85C1 50%, #FFB6C1 100%);
+  border-radius: 25px;
+  box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
+}
+
+.theme-junior .kawaii-button:hover {
+  background: linear-gradient(135deg, #FF85C1 0%, #FF9EC9 50%, #FFC6D0 100%);
+  box-shadow: 0 10px 30px rgba(255, 105, 180, 0.5);
+}
+
+.theme-junior .message-bubble-user {
+  background: linear-gradient(135deg, #FF69B4 0%, #FF85C1 100%);
+  border-radius: 22px 22px 6px 22px;
+  box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
+}
+
+.theme-junior .message-bubble-ai {
+  background: linear-gradient(145deg, #FFFFFF 0%, #FFF8FA 100%);
+  border: 2px solid rgba(255, 182, 193, 0.6);
+  border-radius: 22px 22px 22px 6px;
+  box-shadow: 0 2px 12px rgba(255, 182, 193, 0.2);
+}
+
+.theme-junior .sticker-container {
+  background: linear-gradient(145deg, #FFFFFF 0%, #FFF5F7 100%);
+  border: 1px solid rgba(255, 182, 193, 0.5);
+  border-radius: 14px;
+}
+
+.theme-junior .sticker-container:hover {
+  background: linear-gradient(145deg, #FFF0F5 0%, #FFE4EC 100%);
+  box-shadow: 0 4px 12px rgba(255, 105, 180, 0.25);
+  transform: scale(1.15) rotate(5deg);
+}
+
+/* ===== TEEN SPECIFIC STYLES ===== */
+.theme-teen .kawaii-gradient {
+  background: linear-gradient(145deg, #F8F5FF 0%, #F3E5F5 30%, #EDE7F6 60%, #FCE4EC 100%);
+}
+
+.theme-teen .kawaii-gradient-soft {
+  background: linear-gradient(145deg, #FDFBFE 0%, #F8F5FF 30%, #F3E5F5 60%, #F5F0F8 100%);
+}
+
+.theme-teen .kawaii-card {
+  background: linear-gradient(145deg, #FFFFFF 0%, #FAF5FF 100%);
+  border-radius: 24px;
+  border: 2px solid rgba(155, 89, 182, 0.3);
+  box-shadow: 0 8px 32px rgba(155, 89, 182, 0.12);
+}
+
+.theme-teen .kawaii-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 16px 48px rgba(155, 89, 182, 0.2);
+}
+
+.theme-teen .kawaii-button {
+  background: linear-gradient(135deg, #9B59B6 0%, #AF7AC5 50%, #CE93D8 100%);
+  border-radius: 22px;
+  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.35);
+}
+
+.theme-teen .kawaii-button:hover {
+  background: linear-gradient(135deg, #AF7AC5 0%, #BB8FCE 50%, #D7BDE2 100%);
+  box-shadow: 0 10px 30px rgba(155, 89, 182, 0.45);
+}
+
+.theme-teen .message-bubble-user {
+  background: linear-gradient(135deg, #9B59B6 0%, #AF7AC5 100%);
+  border-radius: 20px 20px 6px 20px;
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+}
+
+.theme-teen .message-bubble-ai {
+  background: linear-gradient(145deg, #FFFFFF 0%, #FAF5FF 100%);
+  border: 2px solid rgba(206, 147, 216, 0.5);
+  border-radius: 20px 20px 20px 6px;
+  box-shadow: 0 2px 12px rgba(155, 89, 182, 0.15);
+}
+
+.theme-teen .sticker-container {
+  background: linear-gradient(145deg, #FFFFFF 0%, #F8F5FF 100%);
+  border: 1px solid rgba(206, 147, 216, 0.5);
+  border-radius: 12px;
+}
+
+.theme-teen .sticker-container:hover {
+  background: linear-gradient(145deg, #F3E5F5 0%, #EDE7F6 100%);
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.2);
+  transform: scale(1.15) rotate(-3deg);
+}
+
+/* ===== YOUNG ADULT SPECIFIC STYLES ===== */
+.theme-young-adult .kawaii-gradient {
+  background: linear-gradient(145deg, #FDF8F6 0%, #FAE8E4 30%, #F5E6E0 60%, #FDF5F0 100%);
+}
+
+.theme-young-adult .kawaii-gradient-soft {
+  background: linear-gradient(145deg, #FFFBFA 0%, #FDF8F6 30%, #FAE8E4 60%, #FAF4F2 100%);
+}
+
+.theme-young-adult .kawaii-card {
+  background: linear-gradient(145deg, #FFFFFF 0%, #FDF8F6 100%);
+  border-radius: 20px;
+  border: 2px solid rgba(212, 165, 165, 0.4);
+  box-shadow: 0 8px 32px rgba(212, 165, 165, 0.12);
+}
+
+.theme-young-adult .kawaii-card:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 14px 40px rgba(212, 165, 165, 0.18);
+}
+
+.theme-young-adult .kawaii-button {
+  background: linear-gradient(135deg, #D4A5A5 0%, #E0B8B8 50%, #E8C4C4 100%);
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(212, 165, 165, 0.35);
+}
+
+.theme-young-adult .kawaii-button:hover {
+  background: linear-gradient(135deg, #E0B8B8 0%, #E8C4C4 50%, #EFD4D4 100%);
+  box-shadow: 0 10px 30px rgba(212, 165, 165, 0.45);
+}
+
+.theme-young-adult .message-bubble-user {
+  background: linear-gradient(135deg, #D4A5A5 0%, #E0B8B8 100%);
+  border-radius: 18px 18px 6px 18px;
+  box-shadow: 0 4px 12px rgba(212, 165, 165, 0.3);
+}
+
+.theme-young-adult .message-bubble-ai {
+  background: linear-gradient(145deg, #FFFFFF 0%, #FDF8F6 100%);
+  border: 2px solid rgba(232, 196, 196, 0.5);
+  border-radius: 18px 18px 18px 6px;
+  box-shadow: 0 2px 12px rgba(212, 165, 165, 0.15);
+}
+
+.theme-young-adult .sticker-container {
+  background: linear-gradient(145deg, #FFFFFF 0%, #FDF8F6 100%);
+  border: 1px solid rgba(232, 196, 196, 0.5);
+  border-radius: 12px;
+}
+
+.theme-young-adult .sticker-container:hover {
+  background: linear-gradient(145deg, #FAE8E4 0%, #F5E6E0 100%);
+  box-shadow: 0 4px 12px rgba(212, 165, 165, 0.2);
+  transform: scale(1.12);
+}
+
+/* ===== PLUS SPECIFIC STYLES ===== */
+.theme-plus .kawaii-gradient {
+  background: linear-gradient(145deg, #F5F7F4 0%, #E8EDE6 30%, #E5EAE2 60%, #F0F4EE 100%);
+}
+
+.theme-plus .kawaii-gradient-soft {
+  background: linear-gradient(145deg, #FAFBF9 0%, #F5F7F4 30%, #E8EDE6 60%, #F2F5F0 100%);
+}
+
+.theme-plus .kawaii-card {
+  background: linear-gradient(145deg, #FFFFFF 0%, #F8FAF7 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(168, 196, 160, 0.35);
+  box-shadow: 0 6px 28px rgba(125, 154, 120, 0.1);
+}
+
+.theme-plus .kawaii-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 36px rgba(125, 154, 120, 0.15);
+}
+
+.theme-plus .kawaii-button {
+  background: linear-gradient(135deg, #7D9A78 0%, #8FA88A 50%, #A8C4A0 100%);
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(125, 154, 120, 0.3);
+}
+
+.theme-plus .kawaii-button:hover {
+  background: linear-gradient(135deg, #8FA88A 0%, #9FB89A 50%, #B0CCA8 100%);
+  box-shadow: 0 8px 26px rgba(125, 154, 120, 0.4);
+}
+
+.theme-plus .message-bubble-user {
+  background: linear-gradient(135deg, #7D9A78 0%, #8FA88A 100%);
+  border-radius: 16px 16px 6px 16px;
+  box-shadow: 0 3px 10px rgba(125, 154, 120, 0.25);
+}
+
+.theme-plus .message-bubble-ai {
+  background: linear-gradient(145deg, #FFFFFF 0%, #F8FAF7 100%);
+  border: 2px solid rgba(168, 196, 160, 0.45);
+  border-radius: 16px 16px 16px 6px;
+  box-shadow: 0 2px 10px rgba(125, 154, 120, 0.12);
+}
+
+.theme-plus .sticker-container {
+  background: linear-gradient(145deg, #FFFFFF 0%, #F5F7F4 100%);
+  border: 1px solid rgba(168, 196, 160, 0.45);
+  border-radius: 10px;
+}
+
+.theme-plus .sticker-container:hover {
+  background: linear-gradient(145deg, #E8EDE6 0%, #E5EAE2 100%);
+  box-shadow: 0 3px 10px rgba(125, 154, 120, 0.15);
+  transform: scale(1.1);
+}
+
+/* Input styling */
+.kawaii-input {
+  font-family: var(--font-quicksand), 'Quicksand', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+/* Elegant title styling */
+.kawaii-title {
+  font-family: var(--font-playfair), 'Playfair Display', serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+/* Badge styling */
+.kawaii-badge {
+  font-family: var(--font-quicksand), 'Quicksand', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Theme indicator colors for age selection cards */
+.theme-indicator-junior { border-left: 4px solid #FF69B4; }
+.theme-indicator-teen { border-left: 4px solid #9B59B6; }
+.theme-indicator-young-adult { border-left: 4px solid #D4A5A5; }
+.theme-indicator-plus { border-left: 4px solid #7D9A78; }
