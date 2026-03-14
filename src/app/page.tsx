@@ -202,31 +202,6 @@ const Confetti = ({ active }: { active: boolean }) => {
   )
 }
 
-// Page Transition Wrapper
-const PageTransition = ({ children, screenKey }: { children: React.ReactNode; screenKey: Screen }) => (
-  <div 
-    key={screenKey}
-    className="animate-page-in"
-  >
-    {children}
-    <style jsx>{`
-      @keyframes pageIn {
-        from { 
-          opacity: 0; 
-          transform: translateY(20px); 
-        }
-        to { 
-          opacity: 1; 
-          transform: translateY(0); 
-        }
-      }
-      .animate-page-in {
-        animation: pageIn 0.4s ease-out forwards;
-      }
-    `}</style>
-  </div>
-)
-
 // Shimmer Loading Component
 const Shimmer = () => (
   <div className="animate-shimmer bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] rounded-2xl" />
@@ -1598,16 +1573,14 @@ export default function KawaiiAI() {
 
   return (
     <main className="font-sans antialiased">
-      <PageTransition screenKey={screen}>
-        {screen === 'landing' && <Landing />}
-        {screen === 'auth' && <Auth />}
-        {screen === 'theme' && <ThemeSelect />}
-        {screen === 'age' && <AgeSelect />}
-        {screen === 'avatar' && <AvatarSelect />}
-        {screen === 'name' && <NameCompanion />}
-        {screen === 'chat' && <Chat />}
-        {screen === 'pricing' && <Pricing />}
-      </PageTransition>
+      {screen === 'landing' && <Landing />}
+      {screen === 'auth' && <Auth />}
+      {screen === 'theme' && <ThemeSelect />}
+      {screen === 'age' && <AgeSelect />}
+      {screen === 'avatar' && <AvatarSelect />}
+      {screen === 'name' && <NameCompanion />}
+      {screen === 'chat' && <Chat />}
+      {screen === 'pricing' && <Pricing />}
     </main>
   )
 }
