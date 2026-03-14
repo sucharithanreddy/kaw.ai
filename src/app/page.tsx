@@ -135,6 +135,20 @@ export default function KawaiiAI() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   
+  // Voice Call State
+  const [isVoiceCallActive, setIsVoiceCallActive] = useState(false)
+  const [isCallLoading, setIsCallLoading] = useState(false)
+  const [callTranscript, setCallTranscript] = useState('')
+  const [isAiSpeaking, setIsAiSpeaking] = useState(false)
+  const [callMessages, setCallMessages] = useState<{role: 'user' | 'ai', text: string}[]>([])
+  
+  // Voice Recording State
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordingTime, setRecordingTime] = useState(0)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  
   const messagesRef = useRef<Message[]>([])
   useEffect(() => {
     messagesRef.current = messages
@@ -259,6 +273,201 @@ export default function KawaiiAI() {
       handleSendMessage()
     }
   }, [handleSendMessage])
+
+  // ============ VOICE CALL FUNCTIONS ============
+  
+  // Speak text using browser TTS
+  const speakText = useCallback((text: string) => {
+    return new Promise<void>((resolve) => {
+      if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel()
+        
+        const utterance = new SpeechSynthesisUtterance(text)
+        utterance.rate = 1.0
+        utterance.pitch = 1.1
+        
+        utterance.onstart = () => setIsAiSpeaking(true)
+        utterance.onend = () => {
+          setIsAiSpeaking(false)
+          resolve()
+        }
+        utterance.onerror = () => {
+          setIsAiSpeaking(false)
+          resolve()
+        }
+        
+        window.speechSynthesis.speak(utterance)
+      } else {
+        resolve()
+      }
+    })
+  }, [])
+
+  // Start voice call
+  const startVoiceCall = useCallback(async () => {
+    setIsVoiceCallActive(true)
+    setCallMessages([])
+    setCallTranscript('')
+    
+    // Generate greeting
+    const greetings = [
+      `Hi there! I'm ${companionName || selectedAvatar?.name}! So glad you called! What would you like to talk about?`,
+      `Hey! It's so nice to hear from you! How are you doing today?`,
+      `Hello! I was just thinking about you! What's on your mind?`,
+      `Hi! This is so exciting! What would you like to chat about?`,
+    ]
+    const greeting = greetings[Math.floor(Math.random() * greetings.length)]
+    
+    setCallMessages([{ role: 'ai', text: greeting }])
+    await speakText(greeting)
+  }, [companionName, selectedAvatar, speakText])
+
+  // End voice call
+  const endVoiceCall = useCallback(() => {
+    setIsVoiceCallActive(false)
+    setIsRecording(false)
+    setIsAiSpeaking(false)
+    setIsCallLoading(false)
+    setCallMessages([])
+    setCallTranscript('')
+    
+    // Stop any ongoing speech
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+    
+    // Stop recording if active
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop()
+    }
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current)
+    }
+  }, [])
+
+  // Start/stop recording during voice call
+  const toggleCallRecording = useCallback(async () => {
+    if (isRecording) {
+      // Stop recording
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop()
+      }
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current)
+        recordingIntervalRef.current = null
+      }
+      setIsRecording(false)
+      setRecordingTime(0)
+    } else {
+      // Start recording
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        const mediaRecorder = new MediaRecorder(stream, { 
+          mimeType: 'audio/webm;codecs=opus' 
+        })
+        mediaRecorderRef.current = mediaRecorder
+        audioChunksRef.current = []
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data)
+          }
+        }
+
+        mediaRecorder.onstop = async () => {
+          stream.getTracks().forEach(track => track.stop())
+          
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+          setCallTranscript('🎵 Transcribing...')
+          
+          try {
+            // Transcribe
+            const formData = new FormData()
+            formData.append('audio', audioBlob, 'recording.webm')
+            
+            const asrResponse = await fetch('/api/asr', {
+              method: 'POST',
+              body: formData
+            })
+            
+            const asrData = await asrResponse.json()
+            
+            if (asrData.transcription && asrData.transcription.trim()) {
+              const userText = asrData.transcription.trim()
+              setCallTranscript(userText)
+              setCallMessages(prev => [...prev, { role: 'user', text: userText }])
+              
+              // Get AI response
+              setIsCallLoading(true)
+              
+              const chatResponse = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  messages: [...callMessages.map(m => ({ 
+                    role: m.role === 'user' ? 'user' : 'assistant', 
+                    content: m.text 
+                  })), { role: 'user', content: userText }],
+                  ageGroup,
+                  companionName: companionName || selectedAvatar?.name,
+                  avatarPersonality: selectedAvatar?.personality,
+                }),
+              })
+              
+              const chatData = await chatResponse.json()
+              const aiResponse = chatData.response || "I'm here for you! 💕"
+              
+              setCallMessages(prev => [...prev, { role: 'ai', text: aiResponse }])
+              setCallTranscript('')
+              setIsCallLoading(false)
+              
+              // Speak AI response
+              await speakText(aiResponse)
+              
+            } else {
+              setCallTranscript('')
+              setCallMessages(prev => [...prev, { 
+                role: 'ai', 
+                text: "I didn't catch that. Could you try again? 🎤" 
+              }])
+              await speakText("I didn't catch that. Could you try again?")
+            }
+          } catch (error) {
+            console.error('Voice call error:', error)
+            setCallTranscript('')
+            setIsCallLoading(false)
+            setCallMessages(prev => [...prev, { 
+              role: 'ai', 
+              text: "Oops! Something went wrong. Let's try again! 💕" 
+            }])
+          }
+        }
+
+        mediaRecorder.start()
+        setIsRecording(true)
+        setRecordingTime(0)
+        
+        recordingIntervalRef.current = setInterval(() => {
+          setRecordingTime(prev => {
+            if (prev >= 30) { // Max 30 seconds per message during call
+              if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                mediaRecorderRef.current.stop()
+              }
+              return 0
+            }
+            return prev + 1
+          })
+        }, 1000)
+        
+      } catch (error) {
+        console.error('Microphone error:', error)
+        alert('Please allow microphone access! 🎤')
+      }
+    }
+  }, [isRecording, callMessages, ageGroup, companionName, selectedAvatar, speakText])
+
+  // ============ END VOICE CALL FUNCTIONS ============
 
   // Landing Screen Component
   const LandingScreen = useMemo(() => (
@@ -507,6 +716,15 @@ export default function KawaiiAI() {
           <Badge className="kawaii-badge rounded-full" style={{ background: `${THEME_CONFIG[ageGroup].ringColor}20`, color: THEME_CONFIG[ageGroup].ringColor }}>
             {AGE_GROUPS[ageGroup].title}
           </Badge>
+          {/* Voice Call Button */}
+          <button
+            onClick={startVoiceCall}
+            className="p-2 rounded-full transition-all hover:scale-110"
+            style={{ background: `${THEME_CONFIG[ageGroup].ringColor}20` }}
+            title="Start Voice Call"
+          >
+            <span className="text-xl">📞</span>
+          </button>
         </div>
       </div>
       
@@ -610,6 +828,90 @@ export default function KawaiiAI() {
           </Button>
         </div>
       </div>
+      
+      {/* Voice Call Modal */}
+      {isVoiceCallActive && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 text-center max-w-sm w-full shadow-2xl">
+            {/* Avatar */}
+            <div className="mb-4">
+              <div 
+                className="w-24 h-24 rounded-full flex items-center justify-center text-5xl mx-auto shadow-lg animate-bounce-soft"
+                style={{ backgroundColor: `${selectedAvatar?.color}50` }}
+              >
+                {selectedAvatar?.emoji}
+              </div>
+            </div>
+            
+            {/* Name */}
+            <h3 className="kawaii-title text-2xl font-bold mb-1" style={{ color: 'var(--primary)' }}>
+              {companionName || selectedAvatar?.name}
+            </h3>
+            
+            {/* Status */}
+            <p className="text-sm mb-4 opacity-70">
+              {isAiSpeaking ? '🔊 Speaking...' : isCallLoading ? '💭 Thinking...' : isRecording ? '🎤 Listening...' : '📞 Voice Call Active'}
+            </p>
+            
+            {/* Call Messages */}
+            <div className="max-h-40 overflow-y-auto mb-4 space-y-2 text-left">
+              {callMessages.map((msg, i) => (
+                <div 
+                  key={i} 
+                  className={`p-2 rounded-xl text-sm ${msg.role === 'user' ? 'bg-pink-100 ml-8' : 'bg-gray-100 mr-8'}`}
+                >
+                  <span className="font-medium">{msg.role === 'user' ? 'You: ' : `${companionName || selectedAvatar?.name}: `}</span>
+                  {msg.text}
+                </div>
+              ))}
+              {callTranscript && (
+                <div className="p-2 rounded-xl text-sm bg-pink-100 ml-8">
+                  <span className="font-medium">You: </span>
+                  {callTranscript}
+                </div>
+              )}
+            </div>
+            
+            {/* Recording Indicator */}
+            {isRecording && (
+              <div className="mb-4">
+                <div className="flex items-center justify-center gap-1">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-red-500 font-medium">{recordingTime}s / 30s</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Tap mic to stop recording</p>
+              </div>
+            )}
+            
+            {/* Mic Button */}
+            <div className="flex justify-center gap-4 mb-4">
+              <button
+                onClick={toggleCallRecording}
+                disabled={isCallLoading || isAiSpeaking}
+                className={`p-6 rounded-full transition-all shadow-lg ${
+                  isRecording 
+                    ? 'bg-red-500 text-white animate-pulse' 
+                    : 'bg-gradient-to-r from-pink-400 to-pink-500 text-white hover:scale-105'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <span className="text-3xl">{isRecording ? '⏹️' : '🎤'}</span>
+              </button>
+            </div>
+            
+            <p className="text-xs text-gray-500 mb-4">
+              💡 Tap the mic to talk. AI will respond with voice!
+            </p>
+            
+            {/* End Call Button */}
+            <button
+              onClick={endVoiceCall}
+              className="px-8 py-3 rounded-full bg-red-500 hover:bg-red-600 text-white font-medium transition-colors"
+            >
+              End Call
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 
