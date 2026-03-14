@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 
 // ═══════════════════════════════════════════════════════════════
@@ -475,12 +474,22 @@ export default function KawaiiAI() {
       <div className="bg-white/90 backdrop-blur rounded-3xl p-8 max-w-md w-full shadow-2xl">
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium mb-1 block">Name</label>
-            <Input placeholder="Your name" className="rounded-full" onChange={e => setCompanionName(e.target.value)} />
+            <label className="text-sm font-medium mb-1 block text-gray-700">Your Name</label>
+            <input 
+              type="text" 
+              placeholder="Enter your name..." 
+              className="w-full rounded-full border-2 border-pink-200 focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-200 p-3 px-4"
+              style={{ borderColor: colors.secondary }}
+            />
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Email</label>
-            <Input type="email" placeholder="you@example.com" className="rounded-full" />
+            <label className="text-sm font-medium mb-1 block text-gray-700">Email</label>
+            <input 
+              type="email" 
+              placeholder="you@example.com" 
+              className="w-full rounded-full border-2 border-pink-200 focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-200 p-3 px-4"
+              style={{ borderColor: colors.secondary }}
+            />
           </div>
         </div>
         
@@ -599,7 +608,14 @@ export default function KawaiiAI() {
           <p className="text-sm opacity-70">Default: <span className="font-bold" style={{ color: colors.primary }}>{avatar?.name}</span></p>
         </div>
         
-        <Input placeholder={avatar?.name} value={companionName} onChange={e => setCompanionName(e.target.value)} className="text-center text-lg p-4 rounded-full" />
+        <input 
+          type="text"
+          placeholder={avatar?.name || 'Enter a name...'}
+          value={companionName}
+          onChange={e => setCompanionName(e.target.value)}
+          className="w-full text-center text-lg p-4 rounded-full border-2 border-pink-200 focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-200 bg-white"
+          style={{ borderColor: colors.secondary }}
+        />
         
         {/* Memory Toggle */}
         <div className="mt-6 p-4 rounded-xl flex items-center justify-between" style={{ background: colors.secondary + '30' }}>
@@ -646,8 +662,19 @@ export default function KawaiiAI() {
                   <li key={j} className="flex items-center gap-2 text-sm"><span style={{ color: colors.primary }}>✓</span>{f}</li>
                 ))}
               </ul>
-              <Button className="w-full rounded-full py-5 text-white" style={{ background: i === 0 ? '#888' : `linear-gradient(135deg, ${colors.primary}, ${colors.accent})` }}>
-                {t === 'FREE' ? 'Free' : `Get ${PRICING[t].name} 💕`}
+              <Button 
+                onClick={() => {
+                  if (t === 'FREE') {
+                    setScreen('auth')
+                  } else {
+                    alert(`✨ ${PRICING[t].name} features are unlocked for testing! Enjoy all premium features! 💕`)
+                    setScreen('auth')
+                  }
+                }}
+                className="w-full rounded-full py-5 text-white" 
+                style={{ background: i === 0 ? '#888' : `linear-gradient(135deg, ${colors.primary}, ${colors.accent})` }}
+              >
+                {t === 'FREE' ? 'Get Started Free' : `Get ${PRICING[t].name} 💕`}
               </Button>
             </div>
           </div>
@@ -740,7 +767,13 @@ export default function KawaiiAI() {
                 <button key={i} onClick={() => logMood(i)} className="text-4xl p-2 rounded-xl hover:scale-110 transition-transform">{e}</button>
               ))}
             </div>
-            <Input placeholder="Add a note... (optional)" value={moodNotes} onChange={e => setMoodNotes(e.target.value)} className="rounded-full mb-4" />
+            <input 
+              placeholder="Add a note... (optional)" 
+              value={moodNotes} 
+              onChange={e => setMoodNotes(e.target.value)} 
+              className="w-full rounded-full border-2 border-pink-200 focus:border-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-200 p-3 px-4 mb-4"
+              style={{ borderColor: colors.secondary }}
+            />
             <Button onClick={() => setShowMood(false)} variant="outline" className="w-full rounded-full">Cancel</Button>
           </div>
         </div>
