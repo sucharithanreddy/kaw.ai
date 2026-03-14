@@ -463,28 +463,30 @@ export default function KawaiiAI() {
   // ─────────────────────────────────────────────────────────────────────────
   const Landing = () => (
     <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: colors.softGradient }}>
-      {/* Decorative Background Elements */}
+      {/* Animated Gradient Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-30" style={{ background: colors.primary }} />
-        <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full blur-3xl opacity-20" style={{ background: colors.secondary }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl opacity-10" style={{ background: colors.accent }} />
+        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full animate-orb-1" style={{ background: `radial-gradient(circle, ${colors.primary}40 0%, transparent 70%)` }} />
+        <div className="absolute bottom-[-15%] left-[-10%] w-[400px] h-[400px] rounded-full animate-orb-2" style={{ background: `radial-gradient(circle, ${colors.secondary}50 0%, transparent 70%)` }} />
+        <div className="absolute top-[40%] left-[10%] w-[300px] h-[300px] rounded-full animate-orb-3" style={{ background: `radial-gradient(circle, ${colors.accent}20 0%, transparent 70%)` }} />
+        <div className="absolute top-[20%] right-[15%] w-[250px] h-[250px] rounded-full animate-orb-1" style={{ background: `radial-gradient(circle, ${colors.primary}20 0%, transparent 70%)`, animationDelay: '-5s' }} />
+        <div className="absolute bottom-[30%] right-[5%] w-[200px] h-[200px] rounded-full animate-orb-2" style={{ background: `radial-gradient(circle, ${colors.secondary}30 0%, transparent 70%)`, animationDelay: '-3s' }} />
       </div>
       
-      {/* Floating Elements */}
+      {/* Sparkle Effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {['🌸', '💕', '✨', '🦋', '⭐', '🌺', '🦄', '🎀'].map((e, i) => (
-          <div 
-            key={i} 
-            className="absolute text-3xl opacity-60 animate-float" 
-            style={{ 
-              top: `${10 + Math.random() * 80}%`, 
-              left: `${5 + Math.random() * 90}%`,
-              animationDelay: `${i * 0.5}s`,
-              animationDuration: `${4 + Math.random() * 3}s`
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 rounded-full animate-sparkle"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              background: i % 2 === 0 ? colors.primary : colors.secondary,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${2 + Math.random() * 3}s`,
+              opacity: 0.6
             }}
-          >
-            {e}
-          </div>
+          />
         ))}
       </div>
 
@@ -581,12 +583,36 @@ export default function KawaiiAI() {
 
       {/* CSS for custom animations */}
       <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(5deg); }
+        @keyframes orb-1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(-30px, 20px) scale(1.1); }
+          50% { transform: translate(20px, -10px) scale(0.95); }
+          75% { transform: translate(-10px, -20px) scale(1.05); }
         }
-        .animate-float {
-          animation: float 5s ease-in-out infinite;
+        .animate-orb-1 {
+          animation: orb-1 15s ease-in-out infinite;
+        }
+        @keyframes orb-2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(40px, -30px) scale(1.15); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        .animate-orb-2 {
+          animation: orb-2 18s ease-in-out infinite;
+        }
+        @keyframes orb-3 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          50% { transform: translate(30px, 30px) rotate(180deg); }
+        }
+        .animate-orb-3 {
+          animation: orb-3 20s ease-in-out infinite;
+        }
+        @keyframes sparkle {
+          0%, 100% { opacity: 0; transform: scale(0); }
+          50% { opacity: 0.8; transform: scale(1); }
+        }
+        .animate-sparkle {
+          animation: sparkle 3s ease-in-out infinite;
         }
         @keyframes pulse-soft {
           0%, 100% { transform: scale(1); }
