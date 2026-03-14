@@ -149,6 +149,7 @@ export default function KawaiiAI() {
   const audioChunksRef = useRef<Blob[]>([])
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const callMessagesRef = useRef<{role: 'user' | 'ai', text: string}[]>([])
+  const callAudioChunksRef = useRef<Blob[]>([]) // Separate ref for voice call
   
   const messagesRef = useRef<Message[]>([])
   useEffect(() => {
@@ -373,18 +374,38 @@ export default function KawaiiAI() {
           mimeType: 'audio/webm;codecs=opus' 
         })
         mediaRecorderRef.current = mediaRecorder
-        audioChunksRef.current = []
+        callAudioChunksRef.current = [] // Use separate ref for voice call
 
         mediaRecorder.ondataavailable = (event) => {
+          console.log('[Voice Call] ondataavailable, data size:', event.data.size)
           if (event.data.size > 0) {
-            audioChunksRef.current.push(event.data)
+            callAudioChunksRef.current.push(event.data)
           }
         }
 
+        mediaRecorder.onstart = () => {
+          console.log('[Voice Call] Recording started')
+          callAudioChunksRef.current = [] // Clear previous chunks
+        }
+
         mediaRecorder.onstop = async () => {
+          console.log('[Voice Call] Recording stopped, total chunks:', callAudioChunksRef.current.length)
           stream.getTracks().forEach(track => track.stop())
           
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+          const audioBlob = new Blob(callAudioChunksRef.current, { type: 'audio/webm' })
+          console.log('[Voice Call] Audio blob created:', audioBlob.size, 'bytes')
+          
+          // Check if we have audio (lowered threshold)
+          if (audioBlob.size < 500) {
+            console.error('[Voice Call] Audio blob too small:', audioBlob.size)
+            setCallTranscript('')
+            const errorMsg = "Recording too short! Please speak longer 🎤"
+            callMessagesRef.current = [...callMessagesRef.current, { role: 'ai' as const, text: errorMsg }]
+            setCallMessages([...callMessagesRef.current])
+            await speakText("Please speak a bit longer!")
+            return
+          }
+          
           setCallTranscript('🎵 Transcribing...')
           
           try {
@@ -392,11 +413,13 @@ export default function KawaiiAI() {
             const formData = new FormData()
             formData.append('audio', audioBlob, 'recording.webm')
             
+            console.log('[Voice Call] Calling ASR API...')
             const asrResponse = await fetch('/api/asr', {
               method: 'POST',
               body: formData
             })
             
+            console.log('[Voice Call] ASR response status:', asrResponse.status)
             const asrData = await asrResponse.json()
             console.log('[Voice Call] ASR result:', asrData)
             
@@ -466,9 +489,12 @@ export default function KawaiiAI() {
             console.error('[Voice Call] Error:', error)
             setCallTranscript('')
             setIsCallLoading(false)
-            const errorMsg = "Oops! Something went wrong. Let's try again! 💕"
+            const errorMsg = error instanceof Error 
+              ? `Error: ${error.message}` 
+              : "Oops! Something went wrong. Let's try again! 💕"
             callMessagesRef.current = [...callMessagesRef.current, { role: 'ai' as const, text: errorMsg }]
             setCallMessages([...callMessagesRef.current])
+            await speakText("Something went wrong. Please try again!")
           }
         }
 
