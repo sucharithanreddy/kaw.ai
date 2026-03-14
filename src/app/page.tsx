@@ -148,6 +148,7 @@ export default function KawaiiAI() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const callMessagesRef = useRef<{role: 'user' | 'ai', text: string}[]>([])
   
   const messagesRef = useRef<Message[]>([])
   useEffect(() => {
@@ -307,6 +308,7 @@ export default function KawaiiAI() {
   // Start voice call
   const startVoiceCall = useCallback(async () => {
     setIsVoiceCallActive(true)
+    callMessagesRef.current = [] // Reset ref
     setCallMessages([])
     setCallTranscript('')
     
@@ -319,7 +321,10 @@ export default function KawaiiAI() {
     ]
     const greeting = greetings[Math.floor(Math.random() * greetings.length)]
     
+    // Update ref and state
+    callMessagesRef.current = [{ role: 'ai', text: greeting }]
     setCallMessages([{ role: 'ai', text: greeting }])
+    
     await speakText(greeting)
   }, [companionName, selectedAvatar, speakText])
 
@@ -329,6 +334,7 @@ export default function KawaiiAI() {
     setIsRecording(false)
     setIsAiSpeaking(false)
     setIsCallLoading(false)
+    callMessagesRef.current = [] // Reset ref
     setCallMessages([])
     setCallTranscript('')
     
@@ -392,23 +398,34 @@ export default function KawaiiAI() {
             })
             
             const asrData = await asrResponse.json()
+            console.log('[Voice Call] ASR result:', asrData)
             
             if (asrData.transcription && asrData.transcription.trim()) {
               const userText = asrData.transcription.trim()
               setCallTranscript(userText)
-              setCallMessages(prev => [...prev, { role: 'user', text: userText }])
+              
+              // Update ref and state
+              callMessagesRef.current = [...callMessagesRef.current, { role: 'user' as const, text: userText }]
+              setCallMessages([...callMessagesRef.current])
               
               // Get AI response
               setIsCallLoading(true)
+              
+              // Build messages for API - use the ref directly
+              const apiMessages = [
+                ...callMessagesRef.current.map(m => ({ 
+                  role: m.role === 'user' ? 'user' as const : 'assistant' as const, 
+                  content: m.text 
+                }))
+              ]
+              
+              console.log('[Voice Call] Sending to chat API:', apiMessages)
               
               const chatResponse = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  messages: [...callMessages.map(m => ({ 
-                    role: m.role === 'user' ? 'user' : 'assistant', 
-                    content: m.text 
-                  })), { role: 'user', content: userText }],
+                  messages: apiMessages,
                   ageGroup,
                   companionName: companionName || selectedAvatar?.name,
                   avatarPersonality: selectedAvatar?.personality,
@@ -416,31 +433,42 @@ export default function KawaiiAI() {
               })
               
               const chatData = await chatResponse.json()
+              console.log('[Voice Call] Chat response:', chatData)
+              
               const aiResponse = chatData.response || "I'm here for you! 💕"
               
-              setCallMessages(prev => [...prev, { role: 'ai', text: aiResponse }])
+              // Update ref and state
+              callMessagesRef.current = [...callMessagesRef.current, { role: 'ai' as const, text: aiResponse }]
+              setCallMessages([...callMessagesRef.current])
               setCallTranscript('')
               setIsCallLoading(false)
               
               // Speak AI response
               await speakText(aiResponse)
               
+            } else if (asrData.error) {
+              console.error('[Voice Call] ASR error:', asrData.error)
+              setCallTranscript('')
+              const errorMsg = asrData.needsConfig 
+                ? "Voice needs setup! Add ASSEMBLYAI_API_KEY 💕" 
+                : "I didn't catch that. Try again? 🎤"
+              callMessagesRef.current = [...callMessagesRef.current, { role: 'ai' as const, text: errorMsg }]
+              setCallMessages([...callMessagesRef.current])
+              await speakText(errorMsg)
             } else {
               setCallTranscript('')
-              setCallMessages(prev => [...prev, { 
-                role: 'ai', 
-                text: "I didn't catch that. Could you try again? 🎤" 
-              }])
-              await speakText("I didn't catch that. Could you try again?")
+              const errorMsg = "I didn't catch that. Could you try again? 🎤"
+              callMessagesRef.current = [...callMessagesRef.current, { role: 'ai' as const, text: errorMsg }]
+              setCallMessages([...callMessagesRef.current])
+              await speakText(errorMsg)
             }
           } catch (error) {
-            console.error('Voice call error:', error)
+            console.error('[Voice Call] Error:', error)
             setCallTranscript('')
             setIsCallLoading(false)
-            setCallMessages(prev => [...prev, { 
-              role: 'ai', 
-              text: "Oops! Something went wrong. Let's try again! 💕" 
-            }])
+            const errorMsg = "Oops! Something went wrong. Let's try again! 💕"
+            callMessagesRef.current = [...callMessagesRef.current, { role: 'ai' as const, text: errorMsg }]
+            setCallMessages([...callMessagesRef.current])
           }
         }
 
@@ -465,7 +493,7 @@ export default function KawaiiAI() {
         alert('Please allow microphone access! 🎤')
       }
     }
-  }, [isRecording, callMessages, ageGroup, companionName, selectedAvatar, speakText])
+  }, [isRecording, ageGroup, companionName, selectedAvatar, speakText])
 
   // ============ END VOICE CALL FUNCTIONS ============
 
